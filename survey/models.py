@@ -15,7 +15,8 @@ class Question(models.Model):
     def get_absolute_url(self):
         return reverse('survey:question-edit', args=[self.pk])
 
-
+    objects = models.Manager()
+    
 class Answer(models.Model):
     ANSWERS_VALUES = ((0,'Sin Responder'),
                       (1,'Muy Bajo'),
@@ -28,3 +29,5 @@ class Answer(models.Model):
     author = models.ForeignKey(get_user_model(), related_name="answers", verbose_name='Autor', on_delete=models.CASCADE)
     value = models.PositiveIntegerField("Respuesta", default=0)
     comment = models.TextField("Comentario", default="", blank=True)
+    
+    objects = models.Manager()
