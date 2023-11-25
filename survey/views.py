@@ -27,20 +27,43 @@ class QuestionUpdateView(UpdateView):
 
 def answer_question(request):
     question_pk = request.POST.get('question_pk')
-    print(request.POST)
-    if not request.POST.get('question_pk'):
-        return JsonResponse({'ok': False})
-    question = Question.objects.filter(pk=question_pk)[0]
-    answer = Answer.objects.get(question=question, author=request.user)
-    answer.value = request.POST.get('value')
-    answer.save()
+    value = request.POST.get('value')   
+    if not question_pk or not value:
+        return JsonResponse({'ok': False, 'error': 'Datos incompletos'})
+    #question = Question.objects.filter(pk=question_pk)[0]
+    try:
+        question = Question.objects.filter(pk=question_pk)[0]
+        author=request.user
+    except Exception as ex:
+        return JsonResponse({'ok': False, 'error': f'{ex}'})
+    #answer = Answer.objects.get(question=question, author=request.user)
+    #answer.value = request.POST.get('value')
+    #answer.save()
+    if not value.isdigit():
+        return JsonResponse({'ok': False, 'error': 'Valor invalido'})
+    
+    print(value)
     return JsonResponse({'ok': True})
 
 def like_dislike_question(request):
     question_pk = request.POST.get('question_pk')
-    if not request.POST.get('question_pk'):
-        return JsonResponse({'ok': False})
-    question = Question.objects.filter(pk=question_pk)[0]
-    # TODO: Dar Like
+    value = request.POST.get('value')
+    
+    if not question_pk or not value:
+        return JsonResponse({'ok': False, 'error': 'Datos incompletos'})
+    
+    try:
+        question = Question.objects.filter(pk=question_pk)[0]
+    except Exception as ex:
+        return JsonResponse({'ok': False, 'error': f'{ex}'})    
+
+    if value == 'like':
+        print(value)
+    elif value == 'dislike':
+        print(value)
+    else:
+        return JsonResponse({'ok': False, 'error': f'Valor no válido: {value}'})
+
+    
     return JsonResponse({'ok': True})
 
