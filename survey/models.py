@@ -9,13 +9,14 @@ class Question(models.Model):
                                on_delete=models.CASCADE)
     title = models.CharField('Título', max_length=200)
     description = models.TextField('Descripción')
-    # TODO: Quisieramos tener un ranking de la pregunta, con likes y dislikes dados por los usuarios.
+    ranking = models.PositiveIntegerField("Ranking", default=0)
 
-
+    objects = models.Manager() 
+    
     def get_absolute_url(self):
         return reverse('survey:question-edit', args=[self.pk])
 
-    objects = models.Manager()
+    
     
 class Answer(models.Model):
     ANSWERS_VALUES = ((0,'Sin Responder'),
@@ -27,7 +28,15 @@ class Answer(models.Model):
 
     question = models.ForeignKey(Question, related_name="answers", verbose_name='Pregunta', on_delete=models.CASCADE)
     author = models.ForeignKey(get_user_model(), related_name="answers", verbose_name='Autor', on_delete=models.CASCADE)
-    value = models.PositiveIntegerField("Respuesta", default=0)
+    value = models.PositiveIntegerField("Respuesta", default=0)    
     comment = models.TextField("Comentario", default="", blank=True)
     
+    
+    objects = models.Manager()
+    
+class QuestionFeedback(models.Model):
+    question = models.ForeignKey(Question, related_name="feedback", verbose_name='Pregunta', on_delete=models.CASCADE)
+    author = models.ForeignKey(get_user_model(), related_name="feedback", verbose_name='Autor', on_delete=models.CASCADE)
+    value = models.TextField("Feedback", default="", blank=True)   
+
     objects = models.Manager()

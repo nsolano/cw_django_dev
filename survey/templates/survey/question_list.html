@@ -2,12 +2,12 @@
 {% block content %}
     <h1>Preguntas</h1>
     <div class="d-flex flex-column">
-        {% for question in object_list %}
+        {% for question in questions %}
             <div class="card w-100 my-2 p-3">
                 <div class="d-flex flex-row">
                     <div class="col-10">
                         <i class="far fa-question-circle" title="{{ question.description }}"></i>
-                        <span class="fw-bold">{{ question.title }}</span>
+                        <span class="fw-bold">{{ question.title }}</span>                        
                     </div>
                     <div class="col-2">
                         <span class="fw-lighter">Autor:</span> {{ question.author }}
@@ -19,7 +19,7 @@
                         <u class="fw-lighter mb-1">Respuesta</u>
                         <div id="question-answer-url" data-url="{% url 'survey:question-answer' %}">
                             {% for val in '12345' %}
-                                <a class="mx-1 answer star question-{{ question.pk }} {% if question.user_value|slugify == val %}fas{% else %}fal{% endif %} fa-star text-decoration-none"
+                                <a class="mx-1 answer question-{{ question.pk }} {% if question.answer|slugify == val %}fas{% else %}fal{% endif %} fa-star text-decoration-none"
                                    data-question="{{ question.pk }}"
                                    data-value="{{ val }}" href="#"></a>
                             {% endfor %}
@@ -28,9 +28,9 @@
                     <div class="col-4 d-flex flex-column ">
                         <u class="fw-lighter mb-1">Evalúa la pregunta</u>
                         <div id="question-like-url" data-url="{% url 'survey:question-like' %}">
-                            <a class="mx-1 like question-{{ question.pk }} {% if question.user_likes %}fas{% else %}fal{% endif %} fa-thumbs-up text-decoration-none"
+                            <a class="mx-1 like question-{{ question.pk }} {% if question.like %}fas{% else %}fal{% endif %} fa-thumbs-up text-decoration-none"
                                href="#" data-question="{{ question.pk }}" data-value="like" ></a>
-                            <a class="mx-1 dislike question-{{ question.pk }} {% if question.user_dislikes %}fas{% else %}fal{% endif %} fa-thumbs-up fa-flip-both text-decoration-none"
+                            <a class="mx-1 dislike question-{{ question.pk }} {% if question.dislike %}fas{% else %}fal{% endif %} fa-thumbs-up fa-flip-both text-decoration-none"
                                href="#" data-question="{{ question.pk }}" data-value="dislike"></a>
                         </div>
                     </div>
