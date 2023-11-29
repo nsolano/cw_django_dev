@@ -36,7 +36,7 @@
                     </div>
                     <div class="col-2">
                         <u class="fw-lighter mb-1">Ranking:</u>
-                        <div>
+                        <div class="ranking-container-{{ question.pk }}">
                            {{ question.ranking }} pts.
                         </div>
 
@@ -60,30 +60,36 @@
             $('.answer').on('click', function () {
                 var questionPk = $(this).data('question');
                 var value = $(this).data('value');
+                {% if request.user.is_authenticated %}
                 // Desmarca todas las estrellas de la pregunta actual
                 $('.question-' + questionPk + '.answer').removeClass('fas').addClass('fal');
                 // Cambia la clase para la estrella actual
                 $(this).toggleClass('fas fal');
+                {% endif %} 
                 sendRatingData(questionPk, value);
             });
 
             // Función para manejar los likes
-            $('.like').on('click', function () {
+            $('.like').on('click', function () {                
                 var questionPk = $(this).data('question');
+                {% if request.user.is_authenticated %}
                  // Desmarca el dislike
                  $('.question-' + questionPk + '.dislike').removeClass('fas').addClass('fal');
                  // Cambia la clase el like
-                 $(this).toggleClass('fas fal');     
-                sendLikeData(questionPk, 'like');
+                 $(this).toggleClass('fas fal');
+                 {% endif %}     
+                sendLikeData(questionPk, 'like');               
             });
 
             // Función para manejar los dislikes
             $('.dislike').on('click', function () {
                 var questionPk = $(this).data('question');
+                {% if request.user.is_authenticated %}
                  // Desmarca el like
                  $('.question-' + questionPk + '.like').removeClass('fas').addClass('fal');
                 // Cambia la clase el dislike
                  $(this).toggleClass('fas fal');
+                {% endif %} 
                 sendLikeData(questionPk, 'dislike');
             });
 
@@ -101,8 +107,15 @@
                     success: function (response) {
                         if (response.ok) {
                             console.log('Operación exitosa');
+                            updateRanking(response);
+                                                        
                         } else {
-                            console.error('Error en la operación:', response.error);
+                            if (!response.error) {
+                                // Renderiza la respuesta si no hay error
+                                $('body').html(response)
+                            } else {
+                                console.error('Error en la operación:', response.error);
+                                }
                         }
                     },
                     error: function () {
@@ -125,14 +138,29 @@
                     success: function (response) {
                         if (response.ok) {
                             console.log('Operación exitosa');
-                        } else {
-                            console.error('Error en la operación:', response.error);
+                            updateRanking(response);
+                        } else {                            
+                            if (!response.error) {
+                                // Renderiza la respuesta si no hay error
+                                $('body').html(response)
+                            } else {
+                                console.error('Error en la operación:', response.error);
+                                }
                         }
                     },
                     error: function () {
                         console.error('Error en la petición AJAX');
                     }
                 });
+            }
+
+            function updateRanking(response) {                
+                for (let i = 0; i < response.questions.length; i++) {
+                    const question = response.questions[i];
+                    const questionPk = question.pk;
+                    const newRanking = question.ranking;
+                    $('.ranking-container-' + questionPk).text(newRanking + ' pts.'); 
+                }              
             }
         });
 
