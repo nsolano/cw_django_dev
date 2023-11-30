@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h3>Confirmar eliminación</h3>
+    <h6>¿Estás seguro de que deseas eliminar la pregunta "{{ object.title }}"?</h6>
+    <div class="d-flex">
+        <form method="post">
+            {% csrf_token %}
+            <hr>
+            <div class="d-flex">
+                <div class="m-2">
+                    <input class="btn btn-primary" type="submit" value="Eliminar">
+                </div>
+                <div class="m-2">
+                    <button type="button" class="btn btn-danger" onclick="javascript:history.back()">
+                        Cancelar
+                    </button>
+                </div>
+            </div>   
+        </form>
+    </div>
+{% endblock %}

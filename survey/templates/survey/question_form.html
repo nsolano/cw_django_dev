@@ -1,12 +1,28 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Hacer pregunta</h1>
-    <div class="d-flex">
+    <h3>Hacer pregunta</h3>
+    <div class="d-flex">       
         <form method="post">{% csrf_token %}
-            {{ form.as_p }}
-            <hr>
-            <input class="btn btn-primary" type="submit" value="Guardar">
-        </form>
+            {{ form.title.label_tag }}
+            <br>
+            {{ form.title }}
+            <br>
+            {{ form.description.label_tag }}
+            <br>
+            {{ form.description }}
+            <br>   
+            <hr>            
+            <div class="d-flex justify-content-between">
+                <input class="btn btn-primary" type="submit" value="Guardar">
+                <button type="button" class="btn btn-danger" 
+                onclick="javascript:history.back()">
+                Cancelar
+                </button>
+            </div>   
+        </form> 
     </div>
+    
+   
+       
 {% endblock %}

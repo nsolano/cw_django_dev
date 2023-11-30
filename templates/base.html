@@ -36,6 +36,9 @@
                             <a class="nav-link" href="{% url 'survey:question-create' %}">Crear Pregunta</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="{% url 'survey:question-edit-list' %}">Editar Pregunta</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{% url 'logout' %}">Logout</a>
                         </li>
                     {% else %}
@@ -46,6 +49,12 @@
                     {% endif %}
 
                 </ul>
+                
+                {% if user.is_authenticated %}
+                    <span class="navbar-text">                      
+                       <a class="nav-link active">¡Hola, {{ user.username }}!</a>                    
+                    </span>
+                {% endif %}
 
             </div>
         </div>

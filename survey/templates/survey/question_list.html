@@ -19,28 +19,62 @@
                         <u class="fw-lighter mb-1">Respuesta</u>
                         <div id="question-answer-url" data-url="{% url 'survey:question-answer' %}">
                             {% for val in '12345' %}
-                                <a class="mx-1 answer question-{{ question.pk }} {% if question.answer|slugify == val %}fas{% else %}fal{% endif %} fa-star text-decoration-none"
-                                   data-question="{{ question.pk }}"
-                                   data-value="{{ val }}" href="#"></a>
+                                <a class="mx-1 answer question-{{ question.pk }} {% if question.author == user %}disabled{% endif %}
+                                {% if question.answer|slugify == val %}fas{% else %}fal{% endif %} fa-star text-decoration-none"
+                                   data-question="{{ question.pk }}" data-value="{{ val }}"></a>
                             {% endfor %}
                         </div>
                     </div>
                     <div class="col-4 d-flex flex-column ">
                         <u class="fw-lighter mb-1">Evalúa la pregunta</u>
                         <div id="question-like-url" data-url="{% url 'survey:question-like' %}">
-                            <a class="mx-1 like question-{{ question.pk }} {% if question.like %}fas{% else %}fal{% endif %} fa-thumbs-up text-decoration-none"
-                               href="#" data-question="{{ question.pk }}" data-value="like" ></a>
-                            <a class="mx-1 dislike question-{{ question.pk }} {% if question.dislike %}fas{% else %}fal{% endif %} fa-thumbs-up fa-flip-both text-decoration-none"
-                               href="#" data-question="{{ question.pk }}" data-value="dislike"></a>
+                            <a class="mx-1 like question-{{ question.pk }} {% if question.author == user %}disabled{% endif %} 
+                            {% if question.like %}fas{% else %}fal{% endif %} fa-thumbs-up text-decoration-none"
+                               data-question="{{ question.pk }}" data-value="like"></a>
+                            <a class="mx-1 dislike question-{{ question.pk }} {% if question.author == user %}disabled{% endif %}
+                            {% if question.dislike %}fas{% else %}fal{% endif %} fa-thumbs-up fa-flip-both text-decoration-none"
+                               data-question="{{ question.pk }}" data-value="dislike"></a>
                         </div>
                     </div>
                     <div class="col-2">
                         <u class="fw-lighter mb-1">Ranking:</u>
-                        <div class="ranking-container-{{ question.pk }}">
+                        <div>
                            {{ question.ranking }} pts.
                         </div>
+                    </div>
+                </div>
+                <br>
+                <div class="d-flex flex-row"> 
+                {% if request.path != '/' %}
+                {% if user.is_authenticated and user == question.author %}
+                <div class="col-1">                
+                <form method="put" action="{% url 'survey:question-edit' pk=question.pk %}">
+                    <button type="submit" class="btn btn-primary">Editar</button>
+                </form>
+                </div>
+                <div class="col-1">              
+                <form method="delete" id="questionDeleteForm"
+                action="{% url 'survey:question-delete' pk=question.pk %}">
+                {% csrf_token %}                    
+                    <button type="submit" id="deleteButton"
+                    class="btn btn-danger">Eliminar</button>
+                </form>
+                </div>
+                {% endif %}
+                {% endif %}
+                </div>
 
-
+                <div class="modal fade" id="errorModalList" tabindex="-1" aria-labelledby="errorModalListLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="errorModalListLabel">Error</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p id="errorTextList"></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -51,50 +85,73 @@
 {% endblock %}
 
 {% block js %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"
-            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script>
-        $(document).ready(function () {            
-            
+        $(document).ready(function () {
             // Función para manejar la clasificación de estrellas
-            $('.answer').on('click', function () {
+            $('.answer').on('click', function () {                
+                // Evita que el autor se vote a si mismo
+                if ($(this).hasClass('disabled')) {
+                    return false;
+                }
                 var questionPk = $(this).data('question');
                 var value = $(this).data('value');
+                // Verifica si la estrella está marcada
+                var isMarked = $(this).hasClass('fas');                
                 {% if request.user.is_authenticated %}
                 // Desmarca todas las estrellas de la pregunta actual
                 $('.question-' + questionPk + '.answer').removeClass('fas').addClass('fal');
                 // Cambia la clase para la estrella actual
                 $(this).toggleClass('fas fal');
-                {% endif %} 
-                sendRatingData(questionPk, value);
+                {% endif %}
+        
+                // Envía el valor correspondiente (0 si está desmarcado, o el valor original si está marcado)
+                sendQuestionData(questionPk, isMarked ? 0 : value, 'question-answer-url');
             });
-
+        
             // Función para manejar los likes
-            $('.like').on('click', function () {                
+            $('.like').on('click', function () {
+                // Evita que el autor se vote a si mismo
+                if ($(this).hasClass('disabled')) {
+                    return false;
+                }
                 var questionPk = $(this).data('question');
+                // Verifica si el like está marcado
+                var isMarked = $(this).hasClass('fas'); 
+        
                 {% if request.user.is_authenticated %}
-                 // Desmarca el dislike
-                 $('.question-' + questionPk + '.dislike').removeClass('fas').addClass('fal');
-                 // Cambia la clase el like
-                 $(this).toggleClass('fas fal');
-                 {% endif %}     
-                sendLikeData(questionPk, 'like');               
+                // Desmarca el dislike
+                $('.question-' + questionPk + '.dislike').removeClass('fas').addClass('fal');
+                // Cambia la clase el like
+                $(this).toggleClass('fas fal');
+                {% endif %}
+        
+                // Envía el valor correspondiente ('other' si está desmarcado, o el valor original si está marcado)
+                sendQuestionData(questionPk, isMarked ? 'other' : 'like', 'question-like-url');
             });
-
+        
             // Función para manejar los dislikes
             $('.dislike').on('click', function () {
+                // Evita que el autor se vote a si mismo
+                if ($(this).hasClass('disabled')) {
+                    return false;
+                }
                 var questionPk = $(this).data('question');
+                // Verifica si el like está marcado
+                var isMarked = $(this).hasClass('fas'); 
+        
                 {% if request.user.is_authenticated %}
-                 // Desmarca el like
-                 $('.question-' + questionPk + '.like').removeClass('fas').addClass('fal');
+                // Desmarca el like
+                $('.question-' + questionPk + '.like').removeClass('fas').addClass('fal');
                 // Cambia la clase el dislike
-                 $(this).toggleClass('fas fal');
-                {% endif %} 
-                sendLikeData(questionPk, 'dislike');
+                $(this).toggleClass('fas fal');
+                {% endif %}
+        
+                // Envía el valor correspondiente ('other' si está desmarcado, o el valor original si está marcado)
+                sendQuestionData(questionPk, isMarked ? 'other' : 'dislike', 'question-like-url');
             });
-
-            function sendLikeData(questionPk, value) {
-                var url = document.getElementById('question-like-url').getAttribute('data-url');
+        
+            function sendQuestionData(questionPk, value, element) {
+                var url = document.getElementById(element).getAttribute('data-url');
                 var csrf_token = "{{ csrf_token }}";
                 $.ajax({
                     type: 'POST',
@@ -105,64 +162,24 @@
                         'csrfmiddlewaretoken': csrf_token
                     },
                     success: function (response) {
-                        if (response.ok) {
-                            console.log('Operación exitosa');
-                            updateRanking(response);
-                                                        
-                        } else {
-                            if (!response.error) {
-                                // Renderiza la respuesta si no hay error
-                                $('body').html(response)
-                            } else {
-                                console.error('Error en la operación:', response.error);
-                                }
-                        }
-                    },
-                    error: function () {
-                        console.error('Error en la petición AJAX');
-                    }
-                });
-            }
-
-            function sendRatingData(questionPk, value) {
-                var url = document.getElementById('question-answer-url').getAttribute('data-url');
-                var csrf_token = "{{ csrf_token }}";
-                $.ajax({
-                    type: 'POST',
-                    url: url,
-                    data: {
-                        'question_pk': questionPk,
-                        'value': value,
-                        'csrfmiddlewaretoken': csrf_token
-                    },
-                    success: function (response) {
-                        if (response.ok) {
-                            console.log('Operación exitosa');
-                            updateRanking(response);
+                        if (!response.error) {
+                            // Renderiza la respuesta si no hay error
+                            $('body').html(response)
                         } else {                            
-                            if (!response.error) {
-                                // Renderiza la respuesta si no hay error
-                                $('body').html(response)
-                            } else {
-                                console.error('Error en la operación:', response.error);
-                                }
+                            showErrorModal(response.error);
                         }
                     },
-                    error: function () {
-                        console.error('Error en la petición AJAX');
+                    error: function () {                        
+                        showErrorModal('Error en la petición AJAX');
                     }
                 });
             }
 
-            function updateRanking(response) {                
-                for (let i = 0; i < response.questions.length; i++) {
-                    const question = response.questions[i];
-                    const questionPk = question.pk;
-                    const newRanking = question.ranking;
-                    $('.ranking-container-' + questionPk).text(newRanking + ' pts.'); 
-                }              
+            function showErrorModal(errorMessage) {
+                $('#errorTextList').text(errorMessage);
+                $('#errorModalList').modal('show');
             }
-        });
+        });        
 
     </script>
 
