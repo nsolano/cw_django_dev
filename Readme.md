@@ -39,3 +39,26 @@ ranking: `6*10 + 2*5 - 1*3 + 10 = 60 + 10 - 3 +10 = 77`
 Este es un ejemplo de como queda el listado con su ranking y se ve como respondió/votó el usuario actual.
 
 ![Example](example.png)
+
+### Levantar el proyecto
+
+Para ejecutar el proyecto, deberás construir el archivo Dockerfile. Puedes hacerlo ejecutando el siguiente comando en la terminal dentro del directorio principal donde se encuentra el Dockerfile:
+
+`sudo docker build -t <nombre_contenedor> .`
+
+Debes ejecutar la imagen generada por el comando anterior. Para lograr esto, primero necesitas buscar el ID de la imagen. Puedes hacerlo ejecutando:
+
+`sudo docker run -p 8080:8080 <nombre_contenedor`
+
+Finalmente, dirígete a `http://localhost:8000/` y verás que está en funcionamiento.
+
+Ten en cuenta que necesitarás tener Docker instalado y en ejecución. En caso de que ya esté instalado, puedes iniciarlo simplemente ejecutando:
+
+`sudo systemctl start docker `
+
+Ten en cuenta que necesitarás tener Docker instalado y en ejecución. En caso de que ya esté instalado, puedes iniciarlo simplemente ejecutando:
+
+`sudo systemctl start docker`
+
+No dudes en contactarme para solucionar problemas o hacer preguntas.
+
